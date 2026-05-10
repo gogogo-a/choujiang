@@ -124,9 +124,11 @@ function renderDrawPage() {
       <p class="card-subtitle">${item.note}</p>
     </div>
   `).join("");
+  button.disabled = Boolean(result);
   next.disabled = !result;
 
   button.addEventListener("click", () => {
+    if (result) return;
     button.disabled = true;
     next.disabled = true;
     let ticks = 0;
@@ -141,7 +143,6 @@ function renderDrawPage() {
         save("lotteryPrize", result);
         document.querySelectorAll(".prize-card").forEach((node) => node.classList.remove("active"));
         document.querySelectorAll(".prize-card")[prizes.findIndex((item) => item.name === result.name)].classList.add("active");
-        button.disabled = false;
         next.disabled = false;
       }
     }, 80);
