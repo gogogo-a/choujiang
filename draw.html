@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古墓抽奖 - 抽取图标</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="draw">
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><path d="M16 5v7"/><path d="M16 20v7"/></svg></span>
+          <span>古墓抽奖</span>
+        </div>
+        <nav class="steps" aria-label="抽奖步骤">
+          <span class="step">1</span>
+          <span class="step active">2</span>
+          <span class="step">3</span>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">第二步</p>
+          <h1>从七个图标里随机抽取一个</h1>
+        </div>
+        <p class="lead">当前没有正式图片，先使用自绘 SVG 图标占位，后续可直接替换为图片资源。</p>
+        <div class="draw-stage" data-prizes></div>
+        <div class="actions">
+          <button class="button" type="button" data-draw>开始抽取</button>
+          <button class="button secondary" type="button" data-next disabled>进入场景抽取</button>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

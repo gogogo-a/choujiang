@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古墓抽奖 - 抽取场景</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="scene">
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 28V15a10 10 0 0 1 20 0v13"/><path d="M4 28h24"/></svg></span>
+          <span>古墓抽奖</span>
+        </div>
+        <nav class="steps" aria-label="抽奖步骤">
+          <span class="step">1</span>
+          <span class="step">2</span>
+          <span class="step active">3</span>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">第三步</p>
+          <h1>从三个场景里抽取一个</h1>
+        </div>
+        <p class="lead">随机得到“墓道”“耳室”“主墓室”之一，并进入最终结果页。</p>
+        <div class="grid" data-scenes></div>
+        <div class="actions">
+          <button class="button" type="button" data-scene-draw>开始抽场景</button>
+          <button class="button secondary" type="button" data-next disabled>查看最终结果</button>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

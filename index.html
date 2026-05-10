@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古墓抽奖 - 选择道具</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="tool">
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 27V10l7-5 7 5v17"/><path d="M6 27h20"/><path d="M12 13h8"/></svg></span>
+          <span>古墓抽奖</span>
+        </div>
+        <nav class="steps" aria-label="抽奖步骤">
+          <span class="step active">1</span>
+          <span class="step">2</span>
+          <span class="step">3</span>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">第一步</p>
+          <h1>先选一件入局道具</h1>
+        </div>
+        <p class="lead">从五个选项里选一个，道具会作为最终结果的第一项保存。</p>
+        <div class="grid" data-tools></div>
+        <div class="actions">
+          <button class="button" type="button" data-next disabled>进入抽奖</button>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal" data-modal>
+      <div class="modal-box">
+        <h2 data-modal-title></h2>
+        <p data-modal-message></p>
+        <a class="button" href="#" data-modal-action>知道了</a>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
