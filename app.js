@@ -46,7 +46,7 @@ function icon(name) {
 
 function prizeVisual(item) {
   if (item.image) {
-    return `<span class="prize-image"><img src="${item.image}" alt="${item.name}"></span>`;
+    return `<button class="prize-image" type="button" data-preview="${item.image}" data-preview-title="${item.name}" aria-label="查看${item.name}详情"><img src="${item.image}" alt="${item.name}"></button>`;
   }
   return `<span class="prize-icon">${icon(item.icon)}</span>`;
 }
@@ -91,6 +91,37 @@ function showModal(title, message, href) {
   const action = modal.querySelector("[data-modal-action]");
   action.href = href;
   modal.classList.add("open");
+}
+
+function bindImagePreview() {
+  const viewer = document.querySelector("[data-image-viewer]");
+  if (!viewer) return;
+  const image = viewer.querySelector("[data-preview-image]");
+  const title = viewer.querySelector("[data-preview-title]");
+
+  const close = () => {
+    viewer.classList.remove("open");
+    image.removeAttribute("src");
+    image.removeAttribute("alt");
+  };
+
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-preview]");
+    if (trigger) {
+      image.src = trigger.dataset.preview;
+      image.alt = trigger.dataset.previewTitle || "摸金目标";
+      title.textContent = trigger.dataset.previewTitle || "摸金目标";
+      viewer.classList.add("open");
+      return;
+    }
+    if (event.target.closest("[data-preview-close]") || event.target === viewer) {
+      close();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && viewer.classList.contains("open")) close();
+  });
 }
 
 async function postJson(path, body) {
@@ -400,6 +431,7 @@ function renderResultPage() {
 }
 
 bindResetButtons();
+bindImagePreview();
 
 const page = document.body.dataset.page;
 if (page === "tool") renderToolPage();
