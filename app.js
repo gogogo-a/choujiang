@@ -64,6 +64,9 @@ function resetLottery() {
   localStorage.removeItem("lotteryTool");
   localStorage.removeItem("lotteryPrize");
   localStorage.removeItem("lotteryScene");
+  localStorage.removeItem("lotteryKey");
+  localStorage.removeItem("lotteryBoss");
+  localStorage.removeItem("lotterySubmitted");
   window.location.href = "index.html";
 }
 
@@ -83,10 +86,28 @@ function showModal(title, message, href) {
   modal.classList.add("open");
 }
 
+async function postJson(path, body) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "请求失败");
+  return data;
+}
+
+function setText(selector, text) {
+  const node = document.querySelector(selector);
+  if (node) node.textContent = text;
+}
+
 function renderToolPage() {
   const grid = document.querySelector("[data-tools]");
   const next = document.querySelector("[data-next]");
+  const keyForm = document.querySelector("[data-key-form]");
   let selected = load("lotteryTool");
+  let verifiedKey = localStorage.getItem("lotteryKey") || "";
 
   grid.innerHTML = tools.map((item, index) => `
     <button class="option-card ${selected && selected.name === item.name ? "selected" : ""}" type="button" data-index="${index}">
@@ -96,7 +117,35 @@ function renderToolPage() {
     </button>
   `).join("");
 
-  next.disabled = !selected;
+  next.disabled = !selected || !verifiedKey;
+  if (verifiedKey) {
+    keyForm.querySelector("input").value = verifiedKey;
+    setText("[data-key-message]", `密钥已验证：${localStorage.getItem("lotteryBoss") || ""}`);
+  }
+
+  keyForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const key = new FormData(keyForm).get("key").trim().toUpperCase();
+    if (!key) {
+      setText("[data-key-message]", "请输入密钥");
+      return;
+    }
+    try {
+      const data = await postJson("/api/key/verify", { key });
+      localStorage.setItem("lotteryKey", data.key);
+      localStorage.setItem("lotteryBoss", data.boss);
+      localStorage.removeItem("lotterySubmitted");
+      verifiedKey = data.key;
+      setText("[data-key-message]", `密钥已验证：${data.boss}`);
+      next.disabled = !selected;
+    } catch (error) {
+      verifiedKey = "";
+      localStorage.removeItem("lotteryKey");
+      localStorage.removeItem("lotteryBoss");
+      setText("[data-key-message]", error.message);
+      next.disabled = true;
+    }
+  });
 
   grid.addEventListener("click", (event) => {
     const card = event.target.closest("[data-index]");
@@ -105,10 +154,14 @@ function renderToolPage() {
     save("lotteryTool", selected);
     document.querySelectorAll(".option-card").forEach((node) => node.classList.remove("selected"));
     card.classList.add("selected");
-    next.disabled = false;
+    next.disabled = !verifiedKey;
   });
 
   next.addEventListener("click", () => {
+    if (!verifiedKey) {
+      showModal("密钥未验证", "请先输入老板给你的密钥，并通过后台校验。", "#");
+      return;
+    }
     if (!selected) {
       showModal("还没有选择道具", "先从五个道具里选一个，再进入下一步。", "#");
       return;
@@ -118,7 +171,7 @@ function renderToolPage() {
 }
 
 function renderDrawPage() {
-  if (!load("lotteryTool")) {
+  if (!localStorage.getItem("lotteryKey") || !load("lotteryTool")) {
     window.location.href = "index.html";
     return;
   }
@@ -168,7 +221,7 @@ function renderDrawPage() {
 }
 
 function renderScenePage() {
-  if (!load("lotteryPrize")) {
+  if (!localStorage.getItem("lotteryKey") || !load("lotteryPrize")) {
     window.location.href = "draw.html";
     return;
   }
@@ -218,7 +271,8 @@ function renderResultPage() {
   const tool = load("lotteryTool");
   const prize = load("lotteryPrize");
   const scene = load("lotteryScene");
-  if (!tool || !prize || !scene) {
+  const key = localStorage.getItem("lotteryKey");
+  if (!key || !tool || !prize || !scene) {
     window.location.href = "index.html";
     return;
   }
@@ -239,6 +293,20 @@ function renderResultPage() {
     </section>
   `).join("");
 
+  const status = document.querySelector("[data-submit-status]");
+  if (localStorage.getItem("lotterySubmitted") === "1") {
+    status.textContent = "结果已提交，密钥已销毁。";
+    return;
+  }
+
+  postJson("/api/key/consume", { key, result: { tool, prize, scene } })
+    .then(() => {
+      localStorage.setItem("lotterySubmitted", "1");
+      status.textContent = "结果已提交，密钥已销毁。";
+    })
+    .catch((error) => {
+      status.textContent = error.message;
+    });
 }
 
 bindResetButtons();

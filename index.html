@@ -25,7 +25,15 @@
           <p class="eyebrow">第一步</p>
           <h1>先选一件入局道具</h1>
         </div>
-        <p class="lead">从五个选项里选一个，道具会作为最终结果的第一项保存。</p>
+        <p class="lead">输入老板给你的密钥，通过校验后再从五个选项里选一个。密钥提交最终结果后会自动销毁。</p>
+        <form class="key-form" data-key-form>
+          <label>
+            <span>抽奖密钥</span>
+            <input name="key" placeholder="输入后台生成的密钥" autocomplete="off">
+          </label>
+          <button class="button secondary" type="submit">验证密钥</button>
+          <p class="form-message" data-key-message></p>
+        </form>
         <div class="grid" data-tools></div>
         <div class="actions">
           <button class="button" type="button" data-next disabled>进入抽奖</button>
