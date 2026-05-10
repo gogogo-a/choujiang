@@ -33,6 +33,25 @@ function setMessage(selector, text) {
   document.querySelector(selector).textContent = text;
 }
 
+async function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.left = "-9999px";
+  input.style.top = "0";
+  document.body.appendChild(input);
+  input.focus();
+  input.select();
+  const success = document.execCommand("copy");
+  document.body.removeChild(input);
+  if (!success) throw new Error("复制失败，请手动选择密钥复制");
+}
+
 function showDashboard(show) {
   document.querySelector("[data-admin-login]").hidden = show;
   document.querySelector("[data-admin-dashboard]").hidden = !show;
@@ -117,7 +136,12 @@ document.querySelector("[data-key-form]").addEventListener("submit", async (even
 
 document.querySelector("[data-copy-key]").addEventListener("click", async () => {
   const text = document.querySelector("[data-new-key-text]").textContent;
-  await navigator.clipboard.writeText(text);
+  try {
+    await copyText(text);
+    setMessage("[data-key-message]", "密钥已复制");
+  } catch (error) {
+    setMessage("[data-key-message]", error.message);
+  }
 });
 
 document.querySelector("[data-admin-logout]").addEventListener("click", () => {

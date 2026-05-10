@@ -90,8 +90,17 @@ function publicKey(item) {
     key: item.key,
     boss: item.boss,
     used: item.used,
+    progress: item.progress || {},
     createdAt: item.createdAt,
     usedAt: item.usedAt || ""
+  };
+}
+
+function publicProgress(item) {
+  return {
+    boss: item.boss,
+    key: item.key,
+    progress: item.progress || {}
   };
 }
 
@@ -129,6 +138,7 @@ async function handleApi(req, res, pathname) {
         key: makeKey(),
         boss,
         used: false,
+        progress: {},
         createdAt: new Date().toISOString()
       };
       store.keys.unshift(item);
@@ -160,7 +170,45 @@ async function handleApi(req, res, pathname) {
         sendJson(res, 409, { message: "密钥已使用" });
         return;
       }
-      sendJson(res, 200, { boss: item.boss, key: item.key });
+      sendJson(res, 200, publicProgress(item));
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/api/key/progress") {
+      const body = await readBody(req);
+      const key = String(body.key || "").trim().toUpperCase();
+      const step = String(body.step || "").trim();
+      const value = body.value || null;
+      const store = readStore();
+      const item = store.keys.find((entry) => entry.key === key);
+      if (!item) {
+        sendJson(res, 404, { message: "密钥不存在" });
+        return;
+      }
+      if (item.used) {
+        sendJson(res, 409, { message: "密钥已使用" });
+        return;
+      }
+      if (!["tool", "prize", "scene"].includes(step) || !value || !value.name) {
+        sendJson(res, 400, { message: "进度参数不完整" });
+        return;
+      }
+      item.progress = item.progress || {};
+      if (item.progress[step]) {
+        sendJson(res, 409, { message: "该步骤已完成，不能重复选择", progress: item.progress });
+        return;
+      }
+      if (step === "prize" && !item.progress.tool) {
+        sendJson(res, 400, { message: "请先完成第一步", progress: item.progress });
+        return;
+      }
+      if (step === "scene" && !item.progress.prize) {
+        sendJson(res, 400, { message: "请先完成摸金目标", progress: item.progress });
+        return;
+      }
+      item.progress[step] = value;
+      writeStore(store);
+      sendJson(res, 200, publicProgress(item));
       return;
     }
 
@@ -178,7 +226,13 @@ async function handleApi(req, res, pathname) {
         sendJson(res, 409, { message: "密钥已使用，不能重复提交结果" });
         return;
       }
-      if (!result.tool || !result.prize || !result.scene) {
+      item.progress = item.progress || {};
+      const finalResult = {
+        tool: item.progress.tool || result.tool,
+        prize: item.progress.prize || result.prize,
+        scene: item.progress.scene || result.scene
+      };
+      if (!finalResult.tool || !finalResult.prize || !finalResult.scene) {
         sendJson(res, 400, { message: "抽奖结果不完整" });
         return;
       }
@@ -189,7 +243,7 @@ async function handleApi(req, res, pathname) {
         id: crypto.randomUUID(),
         key: item.key,
         boss: item.boss,
-        result,
+        result: finalResult,
         usedAt,
         ip: req.socket.remoteAddress || ""
       });
@@ -233,6 +287,4 @@ const server = http.createServer((req, res) => {
 });
 
 ensureStore();
-server.listen(port, "0.0.0.0", () => {
-  console.log(`choujiang server listening on http://0.0.0.0:${port}`);
-});
+server.listen(port, "0.0.0.0");

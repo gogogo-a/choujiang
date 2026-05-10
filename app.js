@@ -97,6 +97,46 @@ async function postJson(path, body) {
   return data;
 }
 
+function clearLocalProgress() {
+  localStorage.removeItem("lotteryTool");
+  localStorage.removeItem("lotteryPrize");
+  localStorage.removeItem("lotteryScene");
+  localStorage.removeItem("lotterySubmitted");
+}
+
+function applyProgress(progress = {}) {
+  if (progress.tool) save("lotteryTool", progress.tool);
+  else localStorage.removeItem("lotteryTool");
+  if (progress.prize) save("lotteryPrize", progress.prize);
+  else localStorage.removeItem("lotteryPrize");
+  if (progress.scene) save("lotteryScene", progress.scene);
+  else localStorage.removeItem("lotteryScene");
+}
+
+function nextPath(progress = {}) {
+  if (progress.scene) return "result.html";
+  if (progress.prize) return "scene.html";
+  if (progress.tool) return "draw.html";
+  return "";
+}
+
+async function verifyCurrentKey() {
+  const key = localStorage.getItem("lotteryKey");
+  if (!key) throw new Error("密钥未验证");
+  const data = await postJson("/api/key/verify", { key });
+  localStorage.setItem("lotteryBoss", data.boss);
+  applyProgress(data.progress);
+  return data;
+}
+
+async function bindStep(step, value) {
+  const key = localStorage.getItem("lotteryKey");
+  if (!key) throw new Error("密钥未验证");
+  const data = await postJson("/api/key/progress", { key, step, value });
+  applyProgress(data.progress);
+  return data;
+}
+
 function setText(selector, text) {
   const node = document.querySelector(selector);
   if (node) node.textContent = text;
@@ -134,14 +174,23 @@ function renderToolPage() {
       const data = await postJson("/api/key/verify", { key });
       localStorage.setItem("lotteryKey", data.key);
       localStorage.setItem("lotteryBoss", data.boss);
-      localStorage.removeItem("lotterySubmitted");
+      clearLocalProgress();
+      applyProgress(data.progress);
       verifiedKey = data.key;
       setText("[data-key-message]", `密钥已验证：${data.boss}`);
-      next.disabled = !selected;
+      const path = nextPath(data.progress);
+      if (path) {
+        window.location.href = path;
+        return;
+      }
+      selected = null;
+      document.querySelectorAll(".option-card").forEach((node) => node.classList.remove("selected"));
+      next.disabled = true;
     } catch (error) {
       verifiedKey = "";
       localStorage.removeItem("lotteryKey");
       localStorage.removeItem("lotteryBoss");
+      clearLocalProgress();
       setText("[data-key-message]", error.message);
       next.disabled = true;
     }
@@ -157,7 +206,7 @@ function renderToolPage() {
     next.disabled = !verifiedKey;
   });
 
-  next.addEventListener("click", () => {
+  next.addEventListener("click", async () => {
     if (!verifiedKey) {
       showModal("密钥未验证", "请先输入老板给你的密钥，并通过后台校验。", "#");
       return;
@@ -166,7 +215,15 @@ function renderToolPage() {
       showModal("还没有选择道具", "先从五个道具里选一个，再进入下一步。", "#");
       return;
     }
-    window.location.href = "draw.html";
+    next.disabled = true;
+    try {
+      await verifyCurrentKey();
+      await bindStep("tool", selected);
+      window.location.href = "draw.html";
+    } catch (error) {
+      showModal("无法继续", error.message, "/index");
+      next.disabled = false;
+    }
   });
 }
 
@@ -193,10 +250,16 @@ function renderDrawPage() {
   button.disabled = Boolean(result);
   next.disabled = !result;
 
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     if (result) return;
     button.disabled = true;
     next.disabled = true;
+    try {
+      await verifyCurrentKey();
+    } catch (error) {
+      showModal("密钥校验失败", error.message, "/index");
+      return;
+    }
     let ticks = 0;
     timer = window.setInterval(() => {
       document.querySelectorAll(".prize-card").forEach((node) => node.classList.remove("active"));
@@ -205,11 +268,18 @@ function renderDrawPage() {
       ticks += 1;
       if (ticks > 22) {
         window.clearInterval(timer);
-        result = pick(prizes);
-        save("lotteryPrize", result);
-        document.querySelectorAll(".prize-card").forEach((node) => node.classList.remove("active"));
-        document.querySelectorAll(".prize-card")[prizes.findIndex((item) => item.name === result.name)].classList.add("active");
-        next.disabled = false;
+        const picked = pick(prizes);
+        bindStep("prize", picked)
+          .then(() => {
+            result = picked;
+            save("lotteryPrize", result);
+            document.querySelectorAll(".prize-card").forEach((node) => node.classList.remove("active"));
+            document.querySelectorAll(".prize-card")[prizes.findIndex((item) => item.name === result.name)].classList.add("active");
+            next.disabled = false;
+          })
+          .catch((error) => {
+            showModal("无法保存摸金目标", error.message, "/index");
+          });
       }
     }, 80);
   });
@@ -241,10 +311,16 @@ function renderScenePage() {
   button.disabled = Boolean(result);
   next.disabled = !result;
 
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     if (result) return;
     button.disabled = true;
     next.disabled = true;
+    try {
+      await verifyCurrentKey();
+    } catch (error) {
+      showModal("密钥校验失败", error.message, "/index");
+      return;
+    }
     let ticks = 0;
     const timer = window.setInterval(() => {
       document.querySelectorAll(".scene-card").forEach((node) => node.classList.remove("active"));
@@ -252,11 +328,18 @@ function renderScenePage() {
       ticks += 1;
       if (ticks > 15) {
         window.clearInterval(timer);
-        result = pick(scenes);
-        save("lotteryScene", result);
-        document.querySelectorAll(".scene-card").forEach((node) => node.classList.remove("active"));
-        document.querySelectorAll(".scene-card")[scenes.findIndex((item) => item.name === result.name)].classList.add("active");
-        next.disabled = false;
+        const picked = pick(scenes);
+        bindStep("scene", picked)
+          .then(() => {
+            result = picked;
+            save("lotteryScene", result);
+            document.querySelectorAll(".scene-card").forEach((node) => node.classList.remove("active"));
+            document.querySelectorAll(".scene-card")[scenes.findIndex((item) => item.name === result.name)].classList.add("active");
+            next.disabled = false;
+          })
+          .catch((error) => {
+            showModal("无法保存随机场景", error.message, "/index");
+          });
       }
     }, 95);
   });
