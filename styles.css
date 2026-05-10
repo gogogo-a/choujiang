@@ -246,6 +246,21 @@ h1 {
   transform: translateY(-2px);
 }
 
+.floating-reset {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 8;
+  min-height: 48px;
+  border: 1px solid rgba(184, 171, 140, 0.34);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--text);
+  background: rgba(27, 26, 23, 0.88);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+}
+
 .draw-stage {
   display: grid;
   grid-template-columns: repeat(7, minmax(76px, 1fr));
@@ -329,6 +344,11 @@ svg {
 
   .result-grid {
     grid-template-columns: 1fr;
+  }
+
+  .floating-reset {
+    right: 16px;
+    bottom: 16px;
   }
 }
 

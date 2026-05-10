@@ -60,6 +60,19 @@ function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+function resetLottery() {
+  localStorage.removeItem("lotteryTool");
+  localStorage.removeItem("lotteryPrize");
+  localStorage.removeItem("lotteryScene");
+  window.location.href = "index.html";
+}
+
+function bindResetButtons() {
+  document.querySelectorAll("[data-reset]").forEach((button) => {
+    button.addEventListener("click", resetLottery);
+  });
+}
+
 function showModal(title, message, href) {
   const modal = document.querySelector("[data-modal]");
   if (!modal) return;
@@ -172,9 +185,11 @@ function renderScenePage() {
       <p class="card-subtitle">${item.note}</p>
     </div>
   `).join("");
+  button.disabled = Boolean(result);
   next.disabled = !result;
 
   button.addEventListener("click", () => {
+    if (result) return;
     button.disabled = true;
     next.disabled = true;
     let ticks = 0;
@@ -188,7 +203,6 @@ function renderScenePage() {
         save("lotteryScene", result);
         document.querySelectorAll(".scene-card").forEach((node) => node.classList.remove("active"));
         document.querySelectorAll(".scene-card")[scenes.findIndex((item) => item.name === result.name)].classList.add("active");
-        button.disabled = false;
         next.disabled = false;
       }
     }, 95);
@@ -225,13 +239,9 @@ function renderResultPage() {
     </section>
   `).join("");
 
-  document.querySelector("[data-reset]").addEventListener("click", () => {
-    localStorage.removeItem("lotteryTool");
-    localStorage.removeItem("lotteryPrize");
-    localStorage.removeItem("lotteryScene");
-    window.location.href = "index.html";
-  });
 }
+
+bindResetButtons();
 
 const page = document.body.dataset.page;
 if (page === "tool") renderToolPage();
