@@ -38,9 +38,8 @@ function showDashboard(show) {
   document.querySelector("[data-admin-dashboard]").hidden = !show;
 }
 
-async function loadRecords() {
-  const data = await api("/api/admin/records");
-  document.querySelector("[data-key-list]").innerHTML = data.keys.map((item) => `
+function keyRow(item) {
+  return `
     <tr>
       <td>${escapeHtml(item.boss)}</td>
       <td><code>${escapeHtml(item.key)}</code></td>
@@ -48,9 +47,11 @@ async function loadRecords() {
       <td>${formatTime(item.createdAt)}</td>
       <td>${formatTime(item.usedAt)}</td>
     </tr>
-  `).join("") || '<tr><td colspan="5">暂无密钥</td></tr>';
+  `;
+}
 
-  document.querySelector("[data-record-list]").innerHTML = data.records.map((item) => `
+function recordRow(item) {
+  return `
     <tr>
       <td>${escapeHtml(item.boss)}</td>
       <td><code>${escapeHtml(item.key)}</code></td>
@@ -59,7 +60,20 @@ async function loadRecords() {
       <td>${escapeHtml(item.result.scene.name)}</td>
       <td>${formatTime(item.usedAt)}</td>
     </tr>
-  `).join("") || '<tr><td colspan="6">暂无使用记录</td></tr>';
+  `;
+}
+
+function prependKey(item) {
+  const list = document.querySelector("[data-key-list]");
+  const emptyRow = list.querySelector("td[colspan]");
+  if (emptyRow) list.innerHTML = "";
+  list.insertAdjacentHTML("afterbegin", keyRow(item));
+}
+
+async function loadRecords() {
+  const data = await api("/api/admin/records");
+  document.querySelector("[data-key-list]").innerHTML = data.keys.map(keyRow).join("") || '<tr><td colspan="5">暂无密钥</td></tr>';
+  document.querySelector("[data-record-list]").innerHTML = data.records.map(recordRow).join("") || '<tr><td colspan="6">暂无使用记录</td></tr>';
 }
 
 document.querySelector("[data-login-form]").addEventListener("submit", async (event) => {
@@ -90,8 +104,9 @@ document.querySelector("[data-key-form]").addEventListener("submit", async (even
   });
   document.querySelector("[data-new-key]").hidden = false;
   document.querySelector("[data-new-key-text]").textContent = data.key.key;
+  prependKey(data.key);
   event.currentTarget.reset();
-  await loadRecords();
+  loadRecords().catch(() => {});
 });
 
 document.querySelector("[data-copy-key]").addEventListener("click", async () => {
