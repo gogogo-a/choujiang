@@ -6,7 +6,7 @@ const path = require("node:path");
 const root = __dirname;
 const dataDir = path.join(root, "data");
 const storeFile = path.join(dataDir, "store.json");
-const port = Number(process.env.PORT || 9000);
+const port = Number(process.env.PORT || 9873);
 const adminUser = process.env.ADMIN_USER || "admin";
 const adminPassword = process.env.ADMIN_PASSWORD || "admin123456";
 const sessions = new Map();
@@ -199,7 +199,9 @@ async function handleApi(req, res, pathname) {
 }
 
 function serveStatic(req, res, pathname) {
-  const cleanPath = pathname === "/" ? "/index.html" : pathname;
+  let cleanPath = pathname;
+  if (pathname === "/" || pathname === "/index") cleanPath = "/index.html";
+  if (pathname === "/admin") cleanPath = "/admin.html";
   const filePath = path.normalize(path.join(root, cleanPath));
   if (!filePath.startsWith(root)) {
     sendText(res, 403, "Forbidden");

@@ -23,11 +23,12 @@ chmod +x start.sh
 ./start.sh
 ```
 
-默认端口：`9000`
+默认端口：`9873`
 
 默认后台：
 
-- 地址：`http://服务器IP:9000/admin.html`
+- 用户端：`http://服务器IP:9873/index`
+- 管理端：`http://服务器IP:9873/admin`
 - 账号：`admin`
 - 密码：`admin123456`
 

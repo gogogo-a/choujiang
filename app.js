@@ -67,7 +67,7 @@ function resetLottery() {
   localStorage.removeItem("lotteryKey");
   localStorage.removeItem("lotteryBoss");
   localStorage.removeItem("lotterySubmitted");
-  window.location.href = "index.html";
+  window.location.href = "/index";
 }
 
 function bindResetButtons() {
@@ -172,7 +172,7 @@ function renderToolPage() {
 
 function renderDrawPage() {
   if (!localStorage.getItem("lotteryKey") || !load("lotteryTool")) {
-    window.location.href = "index.html";
+    window.location.href = "/index";
     return;
   }
 
@@ -273,7 +273,7 @@ function renderResultPage() {
   const scene = load("lotteryScene");
   const key = localStorage.getItem("lotteryKey");
   if (!key || !tool || !prize || !scene) {
-    window.location.href = "index.html";
+    window.location.href = "/index";
     return;
   }
 

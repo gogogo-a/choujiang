@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PORT="${PORT:-9000}"
+PORT="${PORT:-9873}"
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$APP_DIR/logs"
 PID_FILE="$APP_DIR/app.pid"
@@ -36,9 +36,9 @@ nohup env PORT="$PORT" ADMIN_USER="${ADMIN_USER:-admin}" ADMIN_PASSWORD="${ADMIN
 echo $! > "$PID_FILE"
 sleep 1
 
-if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-  echo "启动成功：http://服务器IP:$PORT/"
-  echo "后台地址：http://服务器IP:$PORT/admin.html"
+if kill -0 "$(cat "$PID_FILE")" 2>/dev/null && curl -fsS "http://127.0.0.1:$PORT/index" >/dev/null 2>&1; then
+  echo "用户端地址：http://服务器IP:$PORT/index"
+  echo "管理端地址：http://服务器IP:$PORT/admin"
   echo "默认后台账号：admin"
   echo "默认后台密码：admin123456"
   echo "修改密码示例：ADMIN_PASSWORD='你的密码' ./start.sh"
