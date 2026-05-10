@@ -7,13 +7,13 @@ const tools = [
 ];
 
 const prizes = [
-  { name: "青铜兽面", note: "一号图标", icon: "mask" },
-  { name: "古玉残璧", note: "二号图标", icon: "jade" },
-  { name: "鎏金铜铃", note: "三号图标", icon: "bell" },
-  { name: "残卷秘符", note: "四号图标", icon: "scroll" },
-  { name: "玄铁钥匙", note: "五号图标", icon: "key" },
-  { name: "星盘碎片", note: "六号图标", icon: "compass" },
-  { name: "夜明珠", note: "七号图标", icon: "orb" }
+  { name: "青铜兽面", note: "一号目标", image: "image/processed/1.png" },
+  { name: "古玉残璧", note: "二号目标", image: "image/processed/2.png" },
+  { name: "鎏金铜铃", note: "三号目标", image: "image/processed/3.png" },
+  { name: "残卷秘符", note: "四号目标", image: "image/processed/4.png" },
+  { name: "玄铁钥匙", note: "五号目标", image: "image/processed/5.png" },
+  { name: "星盘碎片", note: "六号目标", image: "image/processed/6.png" },
+  { name: "夜明珠", note: "七号目标", image: "image/processed/7.png" }
 ];
 
 const scenes = [
@@ -42,6 +42,13 @@ const icons = {
 
 function icon(name) {
   return `<svg viewBox="0 0 32 32" aria-hidden="true">${icons[name] || icons.orb}</svg>`;
+}
+
+function prizeVisual(item) {
+  if (item.image) {
+    return `<span class="prize-image"><img src="${item.image}" alt="${item.name}"></span>`;
+  }
+  return `<span class="prize-icon">${icon(item.icon)}</span>`;
 }
 
 function save(key, value) {
@@ -242,7 +249,7 @@ function renderDrawPage() {
 
   grid.innerHTML = prizes.map((item, index) => `
     <div class="prize-card ${result && result.name === item.name ? "active" : ""}" data-index="${index}">
-      <span class="prize-icon">${icon(item.icon)}</span>
+      ${prizeVisual(item)}
       <p class="card-title">${item.name}</p>
       <p class="card-subtitle">${item.note}</p>
     </div>
