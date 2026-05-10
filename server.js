@@ -118,6 +118,12 @@ async function handleApi(req, res, pathname) {
         return;
       }
       const store = readStore();
+      const normalizedBoss = boss.toLowerCase();
+      const exists = store.keys.some((entry) => String(entry.boss || "").trim().toLowerCase() === normalizedBoss);
+      if (exists) {
+        sendJson(res, 409, { message: "老板名称已存在，不能重复生成密钥" });
+        return;
+      }
       const item = {
         id: crypto.randomUUID(),
         key: makeKey(),

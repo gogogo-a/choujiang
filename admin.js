@@ -98,15 +98,21 @@ document.querySelector("[data-login-form]").addEventListener("submit", async (ev
 document.querySelector("[data-key-form]").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const data = await api("/api/admin/keys", {
-    method: "POST",
-    body: JSON.stringify({ boss: form.get("boss") })
-  });
-  document.querySelector("[data-new-key]").hidden = false;
-  document.querySelector("[data-new-key-text]").textContent = data.key.key;
-  prependKey(data.key);
-  event.currentTarget.reset();
-  loadRecords().catch(() => {});
+  setMessage("[data-key-message]", "");
+  try {
+    const data = await api("/api/admin/keys", {
+      method: "POST",
+      body: JSON.stringify({ boss: form.get("boss") })
+    });
+    document.querySelector("[data-new-key]").hidden = false;
+    document.querySelector("[data-new-key-text]").textContent = data.key.key;
+    prependKey(data.key);
+    setMessage("[data-key-message]", "密钥已生成");
+    event.currentTarget.reset();
+    loadRecords().catch(() => {});
+  } catch (error) {
+    setMessage("[data-key-message]", error.message);
+  }
 });
 
 document.querySelector("[data-copy-key]").addEventListener("click", async () => {
